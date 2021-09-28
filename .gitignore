@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Ignore password file
+password.py
+
+# all .idea files
+*.idea
