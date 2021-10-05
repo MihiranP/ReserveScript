@@ -61,16 +61,68 @@ def searchBooking(Date, Time):
     timebook.clear()
     timebook.send_keys(Time)
     # Search Bookings
-    timebook = WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, 10).until(
         ec.element_to_be_clickable((By.XPATH, '/html/body/form/div[6]/div[2]/div/div/div[3]/div[3]/div[4]/div[1]/div[2]'
                                               '/div[1]/div[2]/div[2]/div[2]/div[5]/div[1]/div[2]/button'))).click()
 
 
-date = input("Enter the date that you want to book (mm/dd/yyyy): ")
-time = input("Enter the starting time for your \nbooking (only in intervals of 15 with AM or PM): ")
+def iterateBooking(cappref, floorpref):
+    table_id = driver.find_element(By.XPATH, '/html/body/form/div[6]/div[2]/div/div/div[3]/div[3]/div[4]/div[1]/'
+                                             'div[2]/div[2]/div[3]/div[3]/div[2]/div[2]/div/table/tbody')
+    bookList = table_id.find_elements(By.TAG_NAME, "tr")  # get all of the rows in the table
+    for row in range(1, len(bookList)):
+        capacity = bookList[row].find_elements(By.TAG_NAME, "td")[7].get_attribute("innerHTML")  # get cap from row
+        floor = bookList[row].find_elements(By.TAG_NAME, "td")[5].get_attribute("innerHTML")  # get floor from row
+
+        # Check if available room is meets preferences
+        if cappref == capacity and floorpref == floor:
+            button = bookList[row].find_elements(By.TAG_NAME, "td")[0]
+            button.find_element(By.CLASS_NAME, 'add-to-cart').click()
+
+            # click add button after selecting room
+            WebDriverWait(driver, 20).until(
+                ec.element_to_be_clickable((By.ID, 'setup--add-modal-save'))).click()
+
+            # once we find a room we want exit loop to check all available rooms
+            break
+
+
+def createReservation():
+    # click reservation details
+    WebDriverWait(driver, 20).until(
+        ec.element_to_be_clickable((By.XPATH, "/html/body/form/div[6]/div[2]/div/div/"
+                                              "div[3]/div[3]/div[2]/ul/li[3]/a"))).click()
+    # click Events details and send keys
+    WebDriverWait(driver, 10).until(
+        ec.presence_of_element_located((By.ID, 'event-name'))).send_keys("ResBot")
+
+    # click terms and conditions box
+    WebDriverWait(driver, 20).until(
+        ec.element_to_be_clickable((By.ID, 'terms-and-conditions'))).click()
+
+    # CLICK THE RESERVE BUTTON
+    WebDriverWait(driver, 20).until(
+        ec.element_to_be_clickable((By.XPATH, '/html/body/form/div[6]/div[2]/div/div/div[3]/'
+                                              'div[3]/div[4]/div[3]/div[3]/div/span[2]/button'))).click()
+
+
+# date = input("Enter the date that you want to book (mm/dd/yyyy): ")
+# time = input("Enter the starting time for your \nbooking (only in intervals of 15 with AM or PM): ")
+# ppl = input("Enter how many people will be attending: ")
+# flr = input("Enter floor preference: ")
+date = "10/19/2021"
+time = "11:00 AM"
+ppl = "4"
+flr = "2"
 driver = webdriver.Firefox()
 driver.get("https://tamuengr.emscloudservice.com/web")
 navigateToBooking(PASSVAR)
+sleep(0.5)
 searchBooking(date, time)
+sleep(0.5)
+iterateBooking(ppl, flr)
+sleep(0.5)
+createReservation()
+
 
 
